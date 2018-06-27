@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>网络后台测试版</title>	
+</head>
+<body>
+	<h1>当前时间：{{data.time}}</h1>
+	<h2>长度：{{data.len}}</h2>
+	<h4>模拟量实时数据：</h4>
+	<table border="1">
+		<tr>
+		<!--样式风格定义-->
+		<style type="text/css">
+		table.tftable {font-size:12px;
+	    		       color:#333333;
+					   border-width: 1px;
+					   border-color: #729ea5;
+					   border-collapse: collapse;
+					   }
+		table.tftable tr {font-size:12px;
+	    		          background-color:#acc8cc;
+	            		  border-width: 1px;
+	              		  padding: 8px;
+	              		  border-style: solid;
+	              		  border-color: #729ea5;
+	              		  text-align:left;
+	              		  }
+		table.tftable td {font-size:12px;
+	    		          background-color:#ffffff;
+	            		 }
+		table.tftable th {font-size:12px;
+	    		          border-width: 1px;
+	            		  padding: 8px;
+	              		  border-style: solid;
+	             		  border-color: #729ea5;
+	             		 }
+		</style>
+
+		<td>
+		<!--框架2frame2-->
+  		<table id="frame2" class="tftable" width="400" border="1">
+   		<tr>
+     	<th >ID</th>
+     	<th >名称</th>
+     	<th >A（AB）</th>
+     	<th >B（BC）</th>
+     	<th >C（CA）</th>
+   		</tr>
+   		<!--模拟量第一列26个量-->
+		{% for i in range(26) %}
+         	<tr>
+         	<td align="left">{{i}}</td>
+         	<!--名称-->
+         	<td align="left">{{data.return_2A[i][0]}}</td>
+         	<!--A相值-->
+         	<td align="left">{{data.return_2A[i][1]}}</td>
+         	{% if i == 0 or i == 1 %}
+         		<!--B相值-->
+         		<td align="left">{{data.return_2B[i][1]}}</td>
+         		<!--C相值-->
+         		<td align="left">{{data.return_2C[i][1]}}</td>
+         	{% elif i == 18 or i == 19 or i == 20%}
+         		<td align="left">{{data.return_2B[i-16][1]}}</td>
+         		<td align="left">{{data.return_2C[i-16][1]}}</td>
+         	{% else %}
+         		<td align="left">/</td>
+         		<td align="left">/</td>
+         	{% endif %}
+         	</tr>
+		{% endfor %}
+   		</table >
+  		</td>
+
+
+  		<td>
+  		<!--框架3frame3-->
+   		<table id="frame3" class="tftable" width="250" border="1"  style="float:right;margin-top:-145px;">
+   		<tr>
+     	<th >ID</th>
+     	<th >名称</th>
+     	<th >值</th>
+   		</tr>
+   		{% for i in range(18) %}
+         	<tr>
+         	<td align="left">{{i}}</td>
+         	<td align="left">{{data.return_3[i][0]}}</td>
+         	<td align="left">{{data.return_3[i][1]}}</td>
+         	</tr>
+		{% endfor %}
+   		</table>
+  		</td>
+  		</tr>
+	</table>
+</body>
+</html>
