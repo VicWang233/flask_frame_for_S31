@@ -6,42 +6,12 @@ Created on Sat Jun 23 18:02:40 2018
 """
 
 class data_1():
-    def __init__(self,time,datalist):
+    def __init__(self,time):
         self.time = time
-        self.datalist = datalist
-        self.len = len(self.datalist)
-        self.data_frame2_A = []
-        self.data_frame2_B = []
-        self.data_frame2_C = []
-        self.data_frame3 = []
-        '''
-        #data_1_line：一行数据，格式为列表[名称，数据(None)，行位置，列位置，所在框架]
-        data_1_line[4]：根据所在框架分割
-        在data_1_line[4] == 2时再次根据data_1_line[3]来分割ABC相
-        再根据data_1_line[2]来排序
-        '''
-    #def split_data_from_frame(self,request):
-        for data_1_line in self.datalist:
-            if data_1_line[4] == 2:
-                if data_1_line[3] == 2:
-                    self.data_frame2_A.append(data_1_line)
-                elif data_1_line[3] == 3:
-                    self.data_frame2_B.append(data_1_line)
-                elif data_1_line[3] == 4:
-                    self.data_frame2_C.append(data_1_line) 
-            elif data_1_line[4] == 3:
-                self.data_frame3.append(data_1_line)
-        '''排序'''
-        self.return_2A = sorted(self.data_frame2_A,key = lambda x:x[2])
-        self.return_2B = sorted(self.data_frame2_B,key = lambda x:x[2])
-        self.return_2C = sorted(self.data_frame2_C,key = lambda x:x[2])
-        self.return_3 = sorted(self.data_frame3,key = lambda x:x[2])
-        '''
-        根据请求返回响应的列表
-        2A：框架2（frame2）A相的值
-        2B：框架2（frame2）B相的值
-        2C：框架2（frame2）C相的值
-        '''
+
+
+    #def receive_switching_value(self):
+        
         #if request == '2A':
             #print('self.data_frame2_A',self.return_2A)
         #    return self.return_2A
