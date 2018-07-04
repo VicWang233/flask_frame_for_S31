@@ -2,11 +2,25 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>网络后台测试版</title>	
+	<title>网络后台测试版</title>
+	<script type="text/javascript" src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
 </head>
 <body>
-	<h1>当前时间：{{data.time}}</h1>
-	<h2>长度：{{data.len}}</h2>
+	<a href="/sys_setting" target="_blank">设置</a>
+	<center><h1>当前时间：{{data.time}}</h1>
+	<h2>通讯状态：未做,开关量窗口状态：未做，告警量窗口状态：未做</h2>
+	<label align="center"> 电压体制: </label>
+	<select id="selectid_volt" align="center">
+        <option value="380" align="center"> 220 </option>
+        <option value="400" align="center"> 230 </option>
+        <option value="415" align="center"> 240 </option>
+    </select>
+	<label align="center"> 频率: </label>
+	<select id="selectid_freq" align="center">
+        <option value="50" align="center"> 50 </option>
+        <option value="60" align="center"> 60 </option>
+    </select>
+	<button id="btn_for_setting">确定</button>
 	<h4>模拟量实时数据：</h4>
 	<table border="1">
 		<tr>
@@ -26,6 +40,7 @@
 	              		  border-color: #729ea5;
 	              		  text-align:left;
 	              		  }
+	     
 		table.tftable td {font-size:12px;
 	    		          background-color:#ffffff;
 	            		 }
@@ -35,62 +50,314 @@
 	              		  border-style: solid;
 	             		  border-color: #729ea5;
 	             		 }
+
 		</style>
 
 		<td>
 		<!--框架2frame2-->
   		<table id="frame2" class="tftable" width="400" border="1">
-   		<tr>
-     	<th >ID</th>
-     	<th >名称</th>
-     	<th >A（AB）</th>
-     	<th >B（BC）</th>
-     	<th >C（CA）</th>
-   		</tr>
-   		<!--模拟量第一列26个量-->
-		{% for i in range(26) %}
-         	<tr>
-         	<td align="left">{{i}}</td>
-         	<!--名称-->
-         	<td align="left">{{data.return_2A[i][0]}}</td>
-         	<!--A相值-->
-         	<td align="left">{{data.return_2A[i][1]}}</td>
-         	{% if i == 0 or i == 1 %}
-         		<!--B相值-->
-         		<td align="left">{{data.return_2B[i][1]}}</td>
-         		<!--C相值-->
-         		<td align="left">{{data.return_2C[i][1]}}</td>
-         	{% elif i == 18 or i == 19 or i == 20%}
-         		<td align="left">{{data.return_2B[i-16][1]}}</td>
-         		<td align="left">{{data.return_2C[i-16][1]}}</td>
-         	{% else %}
-         		<td align="left">/</td>
-         		<td align="left">/</td>
-         	{% endif %}
-         	</tr>
-		{% endfor %}
-   		</table >
+   		<!--######################模拟量第一列26个量#################-->
+   		</table class = "mntable1">
   		</td>
 
+  		<td>
+  		<!--###########################框架3frame3#######################-->
+   		<table id="frame3" class="tftable" width="250" border="1"  style="float:right;margin-top:-135px;">
+   		</table>
+  		</td>
 
   		<td>
-  		<!--框架3frame3-->
-   		<table id="frame3" class="tftable" width="250" border="1"  style="float:right;margin-top:-145px;">
-   		<tr>
-     	<th >ID</th>
-     	<th >名称</th>
-     	<th >值</th>
-   		</tr>
-   		{% for i in range(18) %}
-         	<tr>
-         	<td align="left">{{i}}</td>
-         	<td align="left">{{data.return_3[i][0]}}</td>
-         	<td align="left">{{data.return_3[i][1]}}</td>
-         	</tr>
-		{% endfor %}
-   		</table>
+  		<!--#############所有开关量数据均在js中异步加载，创建空壳table用来调用格式####-->
+  		<table id="frame_switch" class="tftable" width="220" border="1"  style="float:right;margin-top:-135px;">
+  		</table>
+
+  		<tr>
+  		<!--############所有告警量数据均在js中异步加载，创建空壳table用来调用格式##########-->
+  		<table id="frame_warning" class="tftable" width="892" border="1"  style="margin-top:0px;">
+  		</table>
+  		<!--####################-->
+  		</tr>
   		</td>
   		</tr>
 	</table>
+	<!--##########ajax动态整个页面刷新js脚本##########-->
+	<script type="text/javascript" charset="utf-8">
+	//点击按钮触发事件
+	$("#btn_for_setting").click(function(){
+				var volt=document.getElementById('selectid_volt');
+				var freq=document.getElementById('selectid_freq');
+                var volt_value=volt.options[volt.selectedIndex].value;
+                var freq_value=freq.options[freq.selectedIndex].value;
+                var json_data={};
+                json_data['volt']=volt_value;
+                json_data['freq']=freq_value;
+                //alert(JSON.stringify(json_data));
+                //电压数据
+                $.ajax({
+                    type: 'POST',
+                    url:"/setting",
+                    dataType:'json',
+                    data:JSON.stringify(json_data),  
+                    contentType: 'application/json; charset=UTF-8',
+                    success:function(data){ 
+                        //alert(data);
+                        //addselect(volt_data);
+                    },
+                    error:function(data){
+                    	//alert('1')
+                    }
+
+                });
+
+  		//alert('数据已经接收到，正在设置中，请稍后。。');
+	});
+	//模拟量刷新函数
+	function analog_quantity_refresh(){
+		$.ajax({url:"/refresh_analog_quantity", 
+				dataType:'json',
+			    //读取数据成功，则执行函数。
+			    success:function(data){
+			    //data四个元素定义，详见flask_app.py 中的refresh_analog_quantity函数
+			    //data[0] = return_2A  data[1] = return_2B data[2] = return_2C data[3] = return_3
+			    //模拟量框架2、3清空
+			    $("#frame2").html("");
+			    $("#frame3").html("");
+			    //模拟量初始化加载
+			    $("#frame2").append("<tr><th >"
+			    	+'ID'+"</th><th >"
+			    	+'名称'+"</th><th >"
+			    	+'A(AB)'+"</th><th >"
+			    	+'B(BC)'+"</th><th >"
+			    	+'C(CA)'+"</th></tr>");
+			    $("#frame3").append("<tr><th >"
+			    	+'ID'+"</th><th >"
+			    	+'名称'+"</th><th >"
+			    	+'值'+"</th></tr>");
+
+			    //加载状态
+			    for(i=0;i<26;i++)
+			    {
+			    //加载i=0、1时三相的id、名称、值
+			    	if (i == 0 || i == 1)
+			    {
+			    		if (i % 2 == 0)
+			    		{
+			    $("#frame2").append(
+			    	"<tr id='analog_in_frame2'><td style='background-color:#e5fbda' align='left'>"
+			    	+i+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[0][i][0]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[0][i][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[1][i][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[2][i][1]+"</td>"
+			    					);
+			    		}
+			    		else
+			    		{
+			    $("#frame2").append(
+			    	"<tr id='analog_in_frame2'><td style='background-color:#e5ffff' align='left'>"
+			    	+i+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[0][i][0]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[0][i][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[1][i][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[2][i][1]+"</td>"
+			    					);
+			    		}
+				}
+				//加载i=18、19、20时三相的id、名称、值
+				else if (i == 18 || i == 19 || i == 20)
+				{
+					if (i % 2 == 0)
+			    		{
+				$("#frame2").append("<tr id='analog_in_frame2'><td style='background-color:#e5fbda' align='left'>"
+			    	+i+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[0][i][0]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[0][i][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[1][i-16][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[2][i-16][1]+"</td>"
+			    					);
+						}
+					else
+			    		{
+				$("#frame2").append("<tr id='analog_in_frame2'><td style='background-color:#e5ffff' align='left'>"
+			    	+i+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[0][i][0]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[0][i][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[1][i-16][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[2][i-16][1]+"</td>"
+			    					);
+						}
+				}
+				//其他没有B、C相值的加载
+				else
+				{
+					if (i % 2 == 0)
+			    		{
+				$("#frame2").append("<tr id='analog_in_frame2'><td style='background-color:#e5fbda' align='left'>"
+			    	+i+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[0][i][0]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[0][i][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+'/'+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+'/'+"</td>"
+			    					);
+						}
+					else
+			    		{
+				$("#frame2").append("<tr id='analog_in_frame2'><td style='background-color:#e5ffff' align='left'>"
+			    	+i+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[0][i][0]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[0][i][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+'/'+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+'/'+"</td>"
+			    					);
+						}
+				}
+
+				}
+				//frame3加载
+				for(i=0;i<18;i++)
+			    {
+			    	if (i % 2 == 0)
+			    		{
+			    $("#frame3").append("<tr id='analog_in_frame3'><td style='background-color:#e5fbda' align='left'>"
+			    	+i+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[3][i][0]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[3][i][1]+"</td>"
+			    					);
+			    		}
+			    		else
+			    		{
+			    $("#frame3").append("<tr id='analog_in_frame3'><td style='background-color:#e5ffff' align='left'>"
+			    	+i+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[3][i][0]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    	+data[3][i][1]+"</td>"
+			    					);
+			    		}
+				}
+
+			    },
+			    error:function(data){
+					//alert('模拟量有问题！');
+				}
+	});
+}
+
+
+	//开关量刷新函数
+	function switching_refresh(){
+		//保存table变量用于隔行变色及鼠标移入高亮
+		var table = document.getElementById("frame_switch")
+		var oldcolor = ""
+		$.ajax({url:"/refresh_switching_value", 
+				dataType:'json',
+			    //读取数据成功，则执行函数。
+			    success:function(data){
+			    //开关量框架清0
+			    $("#frame_switch").html("");
+			    //开关量初始化加载
+			    $("#frame_switch").append("<tr><th>"
+			    			+'开关量名称'+"</th><th>"
+			    			+'开关量状态'+"</th></tr>"
+			    							);
+			    //加载状态
+			    for(i=0;i<18;i++)
+			    {
+			    if (i % 2 == 0)
+			    {
+			    $("#frame_switch").append("<tr id='switching_value'><td style='background-color:#e5fbda' align='left'>"
+			    	+data[i][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    	+data[i][2]+"</td></tr>");
+			    }
+			    else
+			    {
+			    $("#frame_switch").append("<tr id='switching_value'><td style='background-color:#e5ffff' align='left'>"
+			    	+data[i][1]+"</td><td  style='background-color:#e5ffff' align='left'>"
+			    	+data[i][2]+"</td></tr>");
+			    }	
+			    }
+			    		    },
+			    //如果读取的数据存在问题的话
+				error:function(data){
+					//alert('开关量有问题！');
+				}
+	});
+				//var tbl = document.getElementById("frame_switch");
+
+}
+
+	//告警量刷新函数
+	function warning_refresh(){
+		$.ajax({url:"/refresh_warning_value", 
+				dataType:'json',
+			    //读取数据成功，则执行函数。
+			    success:function(data){
+			    	//告警量框架清0
+			    	$("#frame_warning").html("");
+			    	//告警量初始化加载
+			    	$("#frame_warning").append("<tr><th>"
+			    		+'ID'+"</th><th>"
+			    		+'告警量名称part1'+"</th><th>"
+			    		+'状态'+"</th><th>"
+			    		+'ID'+"</th><th>"
+			    		+'告警量名称part2'+"</th><th>"
+			    		+'状态'+"</th><th>"
+			    		+'ID'+"</th><th>"
+			    		+'告警量名称part3'+"</th><th>"
+			    		+'状态'+"</th><th>"
+			    		+'ID'+"</th><th>"
+			    		+'告警量名称part4'+"</th><th>"
+			    		+'状态'+"</th></tr>");
+			    	//加载状态
+			    	for(i=0;i<17;i++)
+			    	{
+			    	
+			    	//偶数渲染浅绿
+			    	if (i % 2 == 0)
+			    	{
+			    	$("#frame_warning").append("<tr id='warning_value'><td style='background-color:#e5fbda' align='left'>"
+			    		+i+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+data[i][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+data[i][2]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+(i+17)+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+data[i+17][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+data[i+17][2]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+(i+34)+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+data[i+34][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+data[i+34][2]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+(i+51)+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+data[i+51][1]+"</td><td style='background-color:#e5fbda' align='left'>"
+			    		+data[i+51][2]+"</td></tr>");
+			    	}
+			    	//奇数渲染浅蓝
+			    	else
+			    		{
+			    	$("#frame_warning").append("<tr id='warning_value'><td style='background-color:#e5ffff' align='left'>"
+			    		+i+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+data[i][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+data[i][2]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+(i+17)+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+data[i+17][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+data[i+17][2]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+(i+34)+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+data[i+34][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+data[i+34][2]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+(i+51)+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+data[i+51][1]+"</td><td style='background-color:#e5ffff' align='left'>"
+			    		+data[i+51][2]+"</td></tr>");
+			    	}
+					}
+			    },
+			    //如果读取的数据存在问题的话
+				error:function(data){
+					//alert('告警量有问题！');
+				}
+	});
+}
+	 //每1秒刷新一次状态
+	 setInterval(analog_quantity_refresh,5000)
+	 setInterval(switching_refresh,5000)
+     setInterval(warning_refresh,5000)
+     
+    </script>
+   <center>
 </body>
 </html>
